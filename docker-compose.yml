@@ -107,7 +107,6 @@ services:
     depends_on:
       - kafka
       - project-service
-      - user-service
 
   rest-api:
     container_name: rest-api
