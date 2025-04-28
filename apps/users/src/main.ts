@@ -6,12 +6,20 @@ async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     UsersModule,
     {
-      transport: Transport.TCP,
+      transport: Transport.KAFKA,
       options: {
-        host: "localhost",
-        port: 3001
+        client: {
+          clientId: "userms",
+          brokers: ['kafka:9092']
+        },
+        consumer: {
+          allowAutoTopicCreation: true,
+          groupId: 'user-service-group',
+        },
       }
     });
   await app.listen();
 }
+
+
 bootstrap();

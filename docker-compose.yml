@@ -1,8 +1,5 @@
 version: '3.9'
 
-networks:
-  backend:
-    driver: bridge
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -25,13 +22,14 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - backend
 
   user-database:
-    image: postgresql:latest
+    image: postgres:latest
     container_name: user_db
     ports:
       - "5433:5432"
@@ -46,7 +44,7 @@ services:
       - backend
 
   project-database:
-    image: postgresql:latest
+    image: postgres:latest
     container_name: projects_db
     ports:
       - "5431:5432"
@@ -63,34 +61,32 @@ services:
   user-service:
     container_name: user-service
     build:
-      context: ./apps/users
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/users/Dockerfile
     ports:
       - "3001:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
     environment:
       - NODE_ENV=development
     depends_on:
       - kafka
       - user-database
+    networks:
+      - backend
 
   project-service:
     container_name: project-service
     build:
-      context: ./apps/projetcs
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/projects/Dockerfile
     ports:
       - "3002:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
     environment:
       - NODE_ENV=development
     depends_on:
       - kafka
       - project-database
+    networks:
+      - backend
 
   cdn-service:
     container_name: cdn
@@ -99,31 +95,33 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3003:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
     environment:
       - NODE_ENV=development
     depends_on:
       - kafka
       - project-service
-
+    networks:
+      - backend
   rest-api:
     container_name: rest-api
     build:
-      context: ./apps/rest_api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/rest_api/Dockerfile
     ports:
       - "3004:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
     environment:
       - NODE_ENV=development
     depends_on:
       - kafka
       - user-service
       - project-service
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
 volumes:
   projects:
   users:

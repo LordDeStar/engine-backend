@@ -2,12 +2,11 @@ FROM node:23-alpine3.20
 
 WORKDIR /app
 
-COPY ../package*.json ./
+COPY package*.json ./
 
-RUN npm i
+RUN npm i @prisma/client
 
-COPY . .
+COPY ./apps/users .
 
 EXPOSE 3000
-
-CMD ["npm", "run", "start:dev"]
+CMD npx prisma migrate dev --name init && npx prisma generate && npm run start:dev
