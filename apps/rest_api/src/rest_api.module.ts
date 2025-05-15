@@ -1,31 +1,19 @@
 import { Module } from '@nestjs/common';
 import { RestApiController } from './rest_api.controller';
 import { RestApiService } from './rest_api.service';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+
 import { JwtStrategy } from './auth/jwt.strategy';
+import { UsersModule } from './users/users.module';
+import { ProjectsModule } from './projects/projects.module';
+import { KafkaModule } from './kafka/kafka.module';
 
 @Module({
   imports: [
-    ClientsModule.register([
-      {
-        name: "KAFKA_SERVICE",
-        transport: Transport.KAFKA,
-        options: {
-          client: {
-            brokers: ['kafka:9092'],
-            clientId: "rest-api"
-          },
-          consumer: {
-            groupId: 'rest-api-group',
-            allowAutoTopicCreation: true
-          },
-          producer: {
-            allowAutoTopicCreation: true
-          },
-        }
-      }
-    ])],
+    UsersModule,
+    ProjectsModule,
+    KafkaModule,
+  ],
   controllers: [RestApiController],
-  providers: [RestApiService, JwtStrategy]
+  providers: [RestApiService, JwtStrategy],
 })
 export class RestApiModule { }

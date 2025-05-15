@@ -10,7 +10,7 @@ import { AuthService } from "./auth.service";
         PassportModule.register({ defaultStrategy: 'jwt' }),
         JwtModule.register({
             secret: "qwe2312z123!32",
-            signOptions: { expiresIn: '60m' }
+            signOptions: { expiresIn: '180m' }
         })
     ],
     providers: [AuthService, PrismaService],
