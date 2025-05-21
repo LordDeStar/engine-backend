@@ -71,6 +71,9 @@ export class ProjectsController {
     return await this.projectsService.createFolder(userId, dto);
   }
 
-
-
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':project/save')
+  public async saveProject(@UserId() userId: number, @Param('project') projectId: string, @Body() data: { json: string[] }) {
+    return await this.projectsService.saveProject(userId, Number(projectId), data.json);
+  }
 }

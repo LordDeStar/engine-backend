@@ -103,4 +103,21 @@ export class ProjectsService implements OnModuleInit {
     public async getStartFiles(projectId: number) {
         return await this.kafkaClient.send('get.start.files', { projectId });
     }
+    public async saveProject(userId: number, projectId: number, json: string[]) {
+        console.log(json);
+        const projects: any[] = await this.getProjects(userId);
+        console.log(projects);
+        console.log(projectId);
+        const title = projects.filter(item => item.id == projectId)[0];
+        console.log(title)
+        const response = await axios.post('http://cdn:3000/save', { userId, title: title.title, json }, {
+            headers: {
+                "Content-Type": 'application/json'
+            },
+        });
+        if (response.data.ok) {
+            return { message: response.data.ok };
+        }
+        return { error: response.data.error };
+    }
 }

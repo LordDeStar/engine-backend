@@ -56,6 +56,15 @@ app.post('/create-folder', (req, res)=>{
     
 })
 
+app.post('/save', (req, res)=>{
+    const {userId, title, json} = req.body;
+    console.log(json);
+    const filePath = path.join(storageDir, `user-${userId}`, title);
+    if(fs.existsSync(filePath)){
+        fs.writeFileSync(path.join(filePath, "save.json", JSON.stringify(json)));
+    }
+    return {ok: ''};
+})
 
 app.post('/create-project', (req, res)=>{
     const {userId, title} = req.body;
