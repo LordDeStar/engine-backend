@@ -76,4 +76,10 @@ export class ProjectsController {
   public async saveProject(@UserId() userId: number, @Param('project') projectId: string, @Body() data: { json: string[] }) {
     return await this.projectsService.saveProject(userId, Number(projectId), data.json);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':project/load')
+  public async loadProject(@UserId() userId: number, @Param('project') projectId: string) {
+    return await this.projectsService.loadProjects(userId, Number(projectId));
+  }
 }

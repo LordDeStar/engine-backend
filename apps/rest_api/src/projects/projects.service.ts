@@ -104,12 +104,8 @@ export class ProjectsService implements OnModuleInit {
         return await this.kafkaClient.send('get.start.files', { projectId });
     }
     public async saveProject(userId: number, projectId: number, json: string[]) {
-        console.log(json);
         const projects: any[] = await this.getProjects(userId);
-        console.log(projects);
-        console.log(projectId);
         const title = projects.filter(item => item.id == projectId)[0];
-        console.log(title)
         const response = await axios.post('http://cdn:3000/save', { userId, title: title.title, json }, {
             headers: {
                 "Content-Type": 'application/json'
@@ -119,5 +115,12 @@ export class ProjectsService implements OnModuleInit {
             return { message: response.data.ok };
         }
         return { error: response.data.error };
+    }
+
+
+    public async loadProjects(userId: number, projectId: number) {
+        const projects: any[] = await this.getProjects(userId);
+        const title = projects.filter(item => item.id == projectId)[0];
+        return { path: `http://localhost:3003/user-${userId}/${title.title}/save.json` };
     }
 }
