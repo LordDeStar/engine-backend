@@ -1,4 +1,4 @@
-import { Controller, UseGuards, Post, Body, Get, UseInterceptors, UploadedFile, Query, Param } from '@nestjs/common';
+import { Controller, UseGuards, Post, Body, Get, UseInterceptors, UploadedFile, Query, Param, Res } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateProjectDto } from 'src/dto/project/create-project.dto';
@@ -6,6 +6,7 @@ import { UserId } from 'src/decorators/user.decorator';
 
 import { CreateFolderDto } from 'src/dto/project/create-folder.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import axios from 'axios';
 
 
 @Controller('projects')
@@ -81,5 +82,17 @@ export class ProjectsController {
   @Get(':project/load')
   public async loadProject(@UserId() userId: number, @Param('project') projectId: string) {
     return await this.projectsService.loadProjects(userId, Number(projectId));
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':project/export')
+  public async exportProject(@Res() res: Response, @UserId() userId: number, @Param('project') projectId: string) {
+    const project = await this.projectsService.exportProject(userId, Number(projectId));
+    console.log(project);
+    const folderPath = `/user-${userId}/${project[0].title}`;
+    const response = await axios.post('http://cdn:3000/export', { folderPath, userId }, {
+      responseType: 'stream'
+    });
+    response.data.pipe(res);
   }
 }

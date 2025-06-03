@@ -18,6 +18,7 @@ export class ProjectsService implements OnModuleInit {
         this.kafkaClient.subscribeToResponseOf('get.start.folders');
         this.kafkaClient.subscribeToResponseOf('get.folders');
         this.kafkaClient.subscribeToResponseOf('get.start.files');
+        this.kafkaClient.subscribeToResponseOf('get.project.by.id');
     }
 
     public async createProject(dto: CreateProjectDto, userId: number) {
@@ -122,5 +123,10 @@ export class ProjectsService implements OnModuleInit {
         const projects: any[] = await this.getProjects(userId);
         const title = projects.filter(item => item.id == projectId)[0];
         return { path: `http://localhost:3003/user-${userId}/${title.title}/save.json` };
+    }
+
+    public async exportProject(userId: number, projectId: number) {
+        // Получаем путь к папке через Kafka
+        return await this.kafkaClient.send('get.project.by.id', { userId, projectId }).toPromise();
     }
 }

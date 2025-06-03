@@ -28,6 +28,11 @@ export class ProjectsController {
     return await this.projectsService.getProjects(userId);
   }
 
+  @MessagePattern('get.project.by.id')
+  public async getOne(@Payload() dto: { userId: number, projectId: number }) {
+    return await this.projectsService.getOne(dto);
+  }
+
   @MessagePattern('get.path.to.folder')
   public async getPathToFolder(@Payload() dto: { parentId: number | undefined, projectId: number }) {
     return await this.projectsService.getFolderPath(dto.parentId, dto.projectId);

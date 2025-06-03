@@ -68,4 +68,20 @@ export class ProjectsService {
     console.log(result.join('/'));
     return result.join('/');
   }
+
+
+  public async getOne(dto: { userId: number, projectId: number }) {
+    return await this.prisma.project.findMany({
+      where: {
+        ownerId: Number(dto.userId),
+        id: Number(dto.projectId)
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        createdAt: true
+      }
+    })
+  }
 }

@@ -1,8 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
+const fsAsync = fs.promises;
 const multer = require('multer');
 const path = require('path');
+const archiver = require('archiver');
+const { error } = require('console');
 const app = express();
 
 
@@ -15,6 +18,9 @@ app.use(express.json({limit: '50mb'}));
 app.use('/', express.static(storageDir));
 
 
+
+
+
 const createProject = (userId, title)=>{
     const userFolder = path.join(storageDir, `user-${userId}`);
     const projectFolder = path.join(userFolder, title);
@@ -25,6 +31,59 @@ const createProject = (userId, title)=>{
         fs.mkdirSync(projectFolder);
     }
 }
+
+const saveEngine = (folderPath)=>{
+    const data = fs.readFileSync('./engine.js');
+    fs.writeFileSync(path.join(folderPath, 'engine.js'), data);
+}
+
+const saveForExport = async (filePath, userId)=>{
+     try{
+        const data = await fsAsync.readFile(path.join(filePath, 'save.json'), 'utf-8');
+        data.replaceAll(`http://localhost:3003/user-${userId}`, '.');
+        const temp = "export const scene = " + data; 
+        await fsAsync.writeFile(path.join(filePath, 'saved_scene.js'), temp);
+     }
+     catch (error){
+        throw new Error('Ошибка при чтении файла сохранения: ' + error);
+     }
+}
+
+const createLoadSave = (folderPath)=>{
+    try{
+        const data = fs.readFileSync('./test.js');
+        fs.writeFileSync(path.join(folderPath, 'save.js'), data);
+    }
+    catch {
+        throw new Error("Ошибка создании loadSave.js файла: ");
+    }
+}
+const createHtml = async (folderPath)=>{
+    try{
+        const data = `<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="main"></div>
+    <script type="module" src="engine.js"></script>
+    <script type="module" src="save.js"></script>
+</body>
+
+</html>`
+        fs.writeFileSync(path.join(folderPath, 'index.html'), data);
+    }
+    catch{
+        throw new Error('Ошибка при создании html документа');
+    }
+}
+
+
 app.post('/upload', (req, res, next) => {
    const {file, fileName, folderPath} = req.body;
    const dir = path.join(storageDir, folderPath);
@@ -40,7 +99,25 @@ app.post('/upload', (req, res, next) => {
 
 });
 
-
+app.post('/export', async (req, res)=>{
+    const {folderPath, userId} = req.body;
+    const dir = path.join(storageDir, folderPath);
+    const rootFolderName = folderPath.split('/').filter(Boolean)[1];
+    console.log('\n\n' + dir + '\n\n');
+    saveEngine(dir);
+    await saveForExport(dir, userId);
+    createLoadSave(dir);
+    createHtml(dir); 
+    const archive = archiver('zip', {
+        zlib: {level: 9}
+    });
+    archive.on('error', (err)=>{
+        res.status(500).send({error: err.message});
+    });
+    archive.pipe(res);
+    archive.directory(dir, rootFolderName);
+    archive.finalize();
+});
 
 app.post('/create-folder', (req, res)=>{
     const {pathToFolder, title} = req.body;
