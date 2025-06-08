@@ -1,4 +1,4 @@
-import { Controller, UseGuards, Post, Body, Get, UseInterceptors, UploadedFile, Query, Param, Res } from '@nestjs/common';
+import { Controller, UseGuards, Post, Body, Get, UseInterceptors, UploadedFile, Query, Param, Res, Delete } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateProjectDto } from 'src/dto/project/create-project.dto';
@@ -94,5 +94,11 @@ export class ProjectsController {
       responseType: 'stream'
     });
     response.data.pipe(res);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(':project/delete')
+  public async deleteProject(@UserId() userId: number, @Param('project') projectId: string) {
+    return await this.projectsService.deleteProject(userId, Number(projectId));
   }
 }

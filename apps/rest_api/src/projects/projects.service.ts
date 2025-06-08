@@ -19,6 +19,7 @@ export class ProjectsService implements OnModuleInit {
         this.kafkaClient.subscribeToResponseOf('get.folders');
         this.kafkaClient.subscribeToResponseOf('get.start.files');
         this.kafkaClient.subscribeToResponseOf('get.project.by.id');
+        this.kafkaClient.subscribeToResponseOf('delete.project');
     }
 
     public async createProject(dto: CreateProjectDto, userId: number) {
@@ -117,16 +118,19 @@ export class ProjectsService implements OnModuleInit {
         }
         return { error: response.data.error };
     }
-
-
     public async loadProjects(userId: number, projectId: number) {
         const projects: any[] = await this.getProjects(userId);
         const title = projects.filter(item => item.id == projectId)[0];
         return { path: `http://localhost:3003/user-${userId}/${title.title}/save.json` };
     }
-
     public async exportProject(userId: number, projectId: number) {
-        // Получаем путь к папке через Kafka
         return await this.kafkaClient.send('get.project.by.id', { userId, projectId }).toPromise();
+    }
+    public async deleteProject(userId: number, projectId: number) {
+        const project = await this.exportProject(userId, projectId);
+
+        const { data } = await axios.delete(`http://cdn:3000/delete-project/${userId}/${project[0].title}`);
+        if (data.error) return data;
+        return await this.kafkaClient.send('delete.project', { projectId });
     }
 }

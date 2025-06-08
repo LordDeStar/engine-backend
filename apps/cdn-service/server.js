@@ -5,9 +5,7 @@ const fsAsync = fs.promises;
 const multer = require('multer');
 const path = require('path');
 const archiver = require('archiver');
-const { error } = require('console');
 const app = express();
-
 
 const storageDir = path.join(__dirname, 'projects');
 if (!fs.existsSync(storageDir)){
@@ -16,11 +14,6 @@ if (!fs.existsSync(storageDir)){
 app.use(cors());
 app.use(express.json({limit: '50mb'}));
 app.use('/', express.static(storageDir));
-
-
-
-
-
 const createProject = (userId, title)=>{
     const userFolder = path.join(storageDir, `user-${userId}`);
     const projectFolder = path.join(userFolder, title);
@@ -31,12 +24,10 @@ const createProject = (userId, title)=>{
         fs.mkdirSync(projectFolder);
     }
 }
-
 const saveEngine = (folderPath)=>{
     const data = fs.readFileSync('./engine.js');
     fs.writeFileSync(path.join(folderPath, 'engine.js'), data);
 }
-
 const saveForExport = async (filePath, userId)=>{
      try{
         const data = await fsAsync.readFile(path.join(filePath, 'save.json'), 'utf-8');
@@ -48,7 +39,6 @@ const saveForExport = async (filePath, userId)=>{
         throw new Error('Ошибка при чтении файла сохранения: ' + error);
      }
 }
-
 const createLoadSave = (folderPath)=>{
     try{
         const data = fs.readFileSync('./test.js');
@@ -82,8 +72,6 @@ const createHtml = async (folderPath)=>{
         throw new Error('Ошибка при создании html документа');
     }
 }
-
-
 app.post('/upload', (req, res, next) => {
    const {file, fileName, folderPath} = req.body;
    const dir = path.join(storageDir, folderPath);
@@ -98,7 +86,6 @@ app.post('/upload', (req, res, next) => {
     res.status(201).json({ok: 'ok'});
 
 });
-
 app.post('/export', async (req, res)=>{
     const {folderPath, userId} = req.body;
     const dir = path.join(storageDir, folderPath);
@@ -118,7 +105,6 @@ app.post('/export', async (req, res)=>{
     archive.directory(dir, rootFolderName);
     archive.finalize();
 });
-
 app.post('/create-folder', (req, res)=>{
     const {pathToFolder, title} = req.body;
     const relative = path.join(pathToFolder, title);
@@ -132,7 +118,6 @@ app.post('/create-folder', (req, res)=>{
     }
     
 })
-
 app.post('/save', (req, res)=>{
     const {userId, title, json} = req.body;
     console.log(json);
@@ -142,13 +127,24 @@ app.post('/save', (req, res)=>{
     }
     return {ok: ''};
 })
-
 app.post('/create-project', (req, res)=>{
     const {userId, title} = req.body;
     createProject(userId, title);
     res.status(201).json({ok: "Все у нас прекрасно!"});
 })
-
+app.delete('/delete-project/:userId/:title', (req, res) => {
+    const { userId, title } = req.params;
+    const dir = path.join(storageDir, `user-${userId}`, title);
+    fs.rm(path.join(storageDir, `user-${userId}`, title), {recursive: true}, (err)=>{
+        if(err){
+            console.log('---------------------------------------------');
+            console.log(dir);
+            console.log(err);
+            console.log('---------------------------------------------');
+        }
+    });
+    res.status(200).json({ ok: "Проект удален!" });
+});
 app.listen(3000, ()=>{
     console.log('Server starts on http://localhost:3000');
 })

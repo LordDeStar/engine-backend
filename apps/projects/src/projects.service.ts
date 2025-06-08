@@ -19,7 +19,6 @@ export class ProjectsService {
       }
     })
   }
-
   public async createProject(dto: CreateProjectDto): Promise<any> {
     try {
       const project = await this.prisma.project.create({
@@ -33,7 +32,6 @@ export class ProjectsService {
       return { error: "Creation failed" };
     }
   }
-
   public async getFolderPath(parentId: number | undefined, projectId: number): Promise<string> {
     console.log("\n\nЯ работаю!\n");
     console.log(parentId);
@@ -68,8 +66,6 @@ export class ProjectsService {
     console.log(result.join('/'));
     return result.join('/');
   }
-
-
   public async getOne(dto: { userId: number, projectId: number }) {
     return await this.prisma.project.findMany({
       where: {
@@ -83,5 +79,13 @@ export class ProjectsService {
         createdAt: true
       }
     })
+  }
+  public async deleteProject(projectId: number) {
+    const deletedProject = await this.prisma.project.delete({
+      where: { id: projectId },
+      include: { items: true }
+    });
+
+    return { ok: "Проект удален!" }
   }
 }

@@ -62,4 +62,9 @@ export class ProjectsController {
   public async getStartFolders(@Payload() project: { projectId: number }) {
     return await this.fileService.getStartFolders(project.projectId);
   }
+
+  @MessagePattern('delete.project')
+  public async deleteProject(@Payload() project: { projectId: number }) {
+    return await this.projectsService.deleteProject(project.projectId);
+  }
 }

@@ -3951,17 +3951,17 @@ class Script {
         this.owner = null;
         this.name = "script";
         this._data = scriptData;
+        this.init();
     }
     OnStart() {
         return __awaiter(this, void 0, void 0, function* () {
-            this.init();
             if (this._data.onStart)
                 this._data.onStart(this.owner);
         });
     }
     OnUpdate() {
         if (this._data.onUpdate)
-            this._data.onUpdate(this.owner, this._params);
+            this._data.onUpdate(this.owner, this.params);
     }
     BeforeRemove() {
         if (this._data.beforeRemove)
@@ -3972,14 +3972,14 @@ class Script {
         return new Promise(resolve => {
             resolve(JSON.stringify({
                 name: this.name,
-                params: this._params,
+                params: this.params,
                 data: this._data
             }));
         });
     }
     init() {
         if (this._data.init)
-            this._params = this._data.init();
+            this.params = this._data.init();
     }
 }
 
@@ -4157,7 +4157,6 @@ class Engine {
                 return yield component.OnStart();
             })))));
             this.resize();
-            this.loop();
         });
     }
     loop() {
